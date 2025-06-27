@@ -107,22 +107,17 @@ export default class ListagemProdutos extends Listagem {
         }
     }
     private listarTop10(): void {
-        const contadorProdutos = new Map<Cliente, number>();
-
-        for (const cliente of this.clientes) {
-            const produtosConsumidos = cliente.getProdutosConsumidos;
-            contadorProdutos.set(cliente, produtosConsumidos.length);
-        }
-
-        const clientesOrdenados = Array.from(contadorProdutos.entries()).sort((a, b) => b[1] - a[1]);
-
-        console.log("Listagem dos 10 clientes que mais consumiram produtos (quantidade):");
-
-        clientesOrdenados.slice(0, 10).forEach((clienteAtual, index) => {
-            const [cliente, quantidade] = clienteAtual;
-            console.log(`${index + 1}. Cliente: ${cliente.nome}, Quantidade de Produtos Consumidos: ${quantidade}`);
-        });
+        const contador = new Map<Cliente, number>();
+    for (const cliente of this.clientes) {
+        const total = cliente.getProdutosConsumidos.length + cliente.getServicosConsumidos.length;
+        contador.set(cliente, total);
     }
+    const clientesOrdenados = Array.from(contador.entries()).sort((a, b) => b[1] - a[1]);
+    console.log("Top 10 clientes que mais consumiram produtos ou serviços (quantidade):");
+    clientesOrdenados.slice(0, 10).forEach(([cliente, total], index) => {
+        console.log(`${index + 1}. Cliente: ${cliente.nome}, Total Consumido: ${total}`);
+    });
+}
     private produtoMaisConsumidos(): void {
         const contadorProdutos = new Map<Produto, number>();
 

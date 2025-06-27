@@ -1,4 +1,3 @@
-
 import Entrada from "../../io/entrada";
 import Cliente from "../../modelo/cliente/cliente";
 import Servico from "../../modelo/servico-produto/servico";
@@ -15,17 +14,19 @@ export default class ListagemServico extends Listagem {
         this.entrada = new Entrada()
     }
     public listar(): void {
-        console.log(`Escolha uma opção para listagem de produto:`);
+        console.log(`Escolha uma opção para listagem de serviço:`);
         console.log(`1 - Serviços mais consumidos por gênero`);
-        console.log(`2 - 10 Clientes que mais consumiram serviços(quantidade)`);
+        console.log(`2 - 10 Clientes que mais consumiram serviços (quantidade)`);
         console.log(`3 - Serviços mais consumidos`);
-        console.log(`4 - 5 Clientes que mais consumiram serviços(valor)`);
-        console.log(`5 - Listar Todos os Serviços Cadastrados `)
-        console.log(`6 - Voltar`);
+        console.log(`4 - 5 Clientes que mais consumiram serviços (valor)`);
+        console.log(`5 - Listar Todos os Serviços Cadastrados`);
+        console.log(`6 - 10 Clientes por gênero`);
+        console.log(`7 - 10 Clientes que menos consumiram serviços`);
+        console.log(`8 - Voltar`);
         let opcaoEscolhida = this.entrada.receberNumero(
             `Digite a opção desejada: `
         )
-        while (opcaoEscolhida < 1 || opcaoEscolhida > 6){
+        while (opcaoEscolhida < 1 || opcaoEscolhida > 8){
             opcaoEscolhida = this.entrada.receberNumero(
                 `Digite a opção desejada: `
             )
@@ -35,21 +36,29 @@ export default class ListagemServico extends Listagem {
                 this.listarServicoGenero()
                 break;
             case 2:
-                this.listarTop10()
+                this.listarTop10MaisConsumiram()
                 break;
             case 3:
                 this.listarMaisConsumidos()
                 break;
             case 4:
-                this.listarTop5()
+                this.listarTop5Valor()
                 break;
             case 5:
-                this.listarTodosProdutos()
+                this.listarTodosServicos()
                 break
             case 6:
+                this.listarTop10PorGenero()
+                break
+            case 7:
+                this.listarTop10MenosConsumiram()
+                break
+            case 8:
                 break
         }
     }
+
+    // 1 - Serviços mais consumidos por gênero
     private listarServicoGenero(): void {
         console.log(`Escolha o gênero que deseja fazer a listagem:`)
         console.log(`1 - Feminino`)
@@ -73,6 +82,7 @@ export default class ListagemServico extends Listagem {
                 break
             default:
                 console.log(`Opção Inválida! Escolha apenas as opções disponiveis.`)
+                return
         }
 
         const clienteGeneroEscolhido = this.clientes.filter(cliente => cliente.getGenero.getValor === genero)
@@ -96,33 +106,34 @@ export default class ListagemServico extends Listagem {
 
             servicosOrdenados.slice(0, 10).forEach((quantidadeSer, index) => {
                 const [servicoId, quantidade] = quantidadeSer
-                const servico = servicosConsumido.find(servico => servico.getId === servicoId)
-
+                const servico = this.servicos.find(servico => servico.getId === servicoId)
                 if (servico) {
-                    console.log(`${index + 1}. Nome: ${servico?.getNome}, Quantidade Consumida ${quantidade}`)
+                    console.log(`${index + 1}. Nome: ${servico.getNome}, Quantidade Consumida: ${quantidade}`)
                 }
             })
         }
         else {
-            console.log(`Não foram consumidos nenhum do serviço pelo gênero ${genero}`)
+            console.log(`Não foram consumidos nenhum serviço pelo gênero ${genero}`)
         }
     }
-    private listarTop10(): void {
-        const contadorServico = new Map<Cliente, number>()
 
+    // 2 - 10 Clientes que mais consumiram serviços (quantidade)
+    private listarTop10MaisConsumiram(): void {
+        const contadorServico = new Map<Cliente, number>()
         for (const cliente of this.clientes) {
             const servicoConsumido = cliente.getServicosConsumidos
             contadorServico.set(cliente, servicoConsumido.length)
         }
         const clientesOrdenados = Array.from(contadorServico.entries()).sort((a, b) => b[1] - a[1])
 
-        console.log(`Listagem dos 10 clientes que mais consumiram serviço (quantidade)`)
-
+        console.log(`Listagem dos 10 clientes que mais consumiram serviços (quantidade):`)
         clientesOrdenados.slice(0, 10).forEach((clienteAtual, index) => {
             const [cliente, quantidade] = clienteAtual
             console.log(`${index + 1}. Cliente: ${cliente.nome}, Quantidade de Serviços Consumidos: ${quantidade}`)
         })
     }
+
+    // 3 - Serviços mais consumidos (geral)
     private listarMaisConsumidos(): void {
         const contadorServico = new Map<Servico, number>()
 
@@ -137,43 +148,72 @@ export default class ListagemServico extends Listagem {
 
         console.log(`Listagem dos serviços mais consumidos: `)
 
-        servicosOrdenados.splice(0, 10).forEach((servicoAtual, index) => {
+        servicosOrdenados.slice(0, 10).forEach((servicoAtual, index) => {
             const [servico, quantidade] = servicoAtual
             console.log(`${index + 1}. Serviço: ${servico.getNome}, Quantidade Consumida: ${quantidade}`)
         })
     }
-    private listarTop5(): void {
-        const contadorServico = new Map<Cliente, number>()
+
+    // 4 - 5 Clientes que mais consumiram em valor
+    private listarTop5Valor(): void {
+        const valoresClientes = new Map<Cliente, number>()
         for (const cliente of this.clientes) {
-            const servicoConsumido = cliente.getServicosConsumidos
             let valorTotal = 0
-            for (const servico of servicoConsumido) {
+            for (const servico of cliente.getServicosConsumidos) {
                 valorTotal += servico.getValorDoServico
             }
-            contadorServico.set(cliente, valorTotal)
+            valoresClientes.set(cliente, valorTotal)
         }
-        const clientesOrdenados = Array.from(contadorServico.entries()).sort((a, b) => b[1] - a[1])
+        const clientesOrdenados = Array.from(valoresClientes.entries()).sort((a, b) => b[1] - a[1])
 
         console.log(`Top 5 clientes que mais consumiram serviços (em valor):`)
-        
-        // Exibe os 5 primeiros clientes da lista ordenada
         clientesOrdenados.slice(0, 5).forEach((clienteAtual, index) => {
             const [cliente, valorTotal] = clienteAtual;
             console.log(`${index + 1}. Cliente: ${cliente.nome}, Valor Total Consumido: R$${valorTotal.toFixed(2)}`);
         })
     }
-    private listarTodosProdutos():void{
+
+    // 5 - Listar todos os serviços cadastrados
+    private listarTodosServicos():void{
         console.log(`-----------------------------------------------`)
         console.log(`          Todos os Serviços Cadastrados`)
         console.log(`-----------------------------------------------`)
         if (this.servicos.length > 0){
-        this.servicos.forEach(servico => {
-            console.log(`Id: ${servico.getId} Nome: ${servico.getNome}`)
-            console.log(`Descrição: ${servico.getDescricao}`)
-            console.log(`Valor: $${servico.getValorDoServico.toFixed(2)}`)
-        console.log(`-----------------------------------------------`)
-        })}else{
+            this.servicos.forEach(servico => {
+                console.log(`Id: ${servico.getId} Nome: ${servico.getNome}`)
+                console.log(`Descrição: ${servico.getDescricao}`)
+                console.log(`Valor: $${servico.getValorDoServico.toFixed(2)}`)
+                console.log(`-----------------------------------------------`)
+            })
+        } else {
             console.log(`O Sistema não possui serviços cadastrados.`)
         }
     }
-}
+
+    // 6 - Listagem dos 10 clientes por gênero
+    private listarTop10PorGenero(): void {
+        const generos = ["Feminino", "Masculino", "Não Binario", "Não Identificado"];
+        for (const genero of generos) {
+            const clientesGenero = this.clientes.filter(c => c.getGenero.getValor === genero);
+            console.log(`\nTop 10 clientes do gênero ${genero}:`);
+            clientesGenero.slice(0, 10).forEach((cliente, index) => {
+                console.log(`${index + 1}. Nome: ${cliente.nome}, CPF: ${cliente.getCpf.getValor}`);
+            });
+        }
+    }
+
+    // 7 - Listagem dos 10 clientes que menos consumiram serviços
+    private listarTop10MenosConsumiram(): void {
+        const contadorServico = new Map<Cliente, number>()
+        for (const cliente of this.clientes) {
+            const servicoConsumido = cliente.getServicosConsumidos
+            contadorServico.set(cliente, servicoConsumido.length)
+        }
+        const clientesOrdenados = Array.from(contadorServico.entries()).sort((a, b) => a[1] - b[1])
+
+        console.log(`Listagem dos 10 clientes que menos consumiram serviços:`)
+        clientesOrdenados.slice(0, 10).forEach((clienteAtual, index) => {
+            const [cliente, quantidade] = clienteAtual
+            console.log(`${index + 1}. Cliente: ${cliente.nome}, Quantidade de Serviços Consumidos: ${quantidade}`)
+        })
+    }}
